@@ -1,0 +1,78 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id 'application'
+    id "com.google.cloud.tools.jib" version "3.0.0"
+}
+
+group = 'br.com.felixgilioli'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+    compile ('net.dv8tion:JDA:4.2.1_253') {
+        exclude module: 'opus-java'
+    }
+    implementation 'com.ibm.watson:ibm-watson:9.0.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '11'
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '11'
+}
+
+application {
+    mainClassName = 'br.com.felixgilioli.discordbot.MainKt'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+ext {
+
+}
+
+processResources {
+    filesMatching('config.properties') {
+        expand(project.properties)
+    }
+}
+
+jib {
+    from {
+        image = 'openjdk:11-jre-slim-buster'
+    }
+    to {
+        image = 'felixgilioli/discordbot'
+        tags = ['latest', project.version]
+        auth {
+            username = "$System.env.DOCKERHUB_USERNAME"
+            password = "$System.env.DOCKERHUB_TOKEN"
+        }
+    }
+    container {
+        mainClass = mainClassName
+    }
+}
