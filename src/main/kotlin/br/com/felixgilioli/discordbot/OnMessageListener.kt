@@ -12,7 +12,7 @@ class OnMessageListener : ListenerAdapter() {
             var message = ""
 
             if (event.message.contentRaw.length > BOT_PREFIX.length) {
-                message = event.message.contentRaw.substring(6)
+                message = event.message.contentRaw.substring(BOT_PREFIX.length + 1)
             }
 
             println("Received the message: $message")
